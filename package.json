@@ -1,0 +1,16 @@
+{
+  "name": "jerome-co-operations-website",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static website for Jerome Co-operations. No dependencies; needs Node 18 or newer.",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:staging": "BUILD_ENV=staging node scripts/build.mjs",
+    "preview": "node scripts/preview.mjs",
+    "admin": "node tools/admin/server.mjs",
+    "build:offline": "BUILD_TARGET=offline node scripts/build.mjs",
+    "check": "node scripts/build.mjs && node tools/check.mjs && BUILD_TARGET=offline node scripts/build.mjs > /dev/null && BUILD_TARGET=offline node tools/check.mjs"
+  }
+}

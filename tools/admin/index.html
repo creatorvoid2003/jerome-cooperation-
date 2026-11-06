@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Site admin</title>
+<style>
+  :root { --chalk:#f1f3f6; --paper:#fff; --ink:#13253a; --ink-2:#3a4c63; --line:#c9d1dc; --signal:#2b49d1; --bad:#b3261e; --ok:#1d6b3a; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif; color:var(--ink); background:var(--chalk); }
+  :focus-visible { outline:3px solid var(--signal); outline-offset:2px; }
+  header.bar { position:sticky; top:0; z-index:10; background:var(--ink); color:var(--chalk); }
+  .bar-in { max-width:62rem; margin:auto; padding:.8rem 1.25rem; display:flex; flex-wrap:wrap; gap:.75rem 1.25rem; align-items:center; justify-content:space-between; }
+  .bar h1 { font-size:1.1rem; margin:0; }
+  .bar a { color:var(--chalk); }
+  .actions { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; }
+  .dirty { font-size:.875rem; color:#ffd58a; }
+  button, .btn { font:inherit; font-weight:600; font-size:.9375rem; padding:.6rem 1.1rem; border-radius:4px; border:1px solid var(--chalk); background:var(--chalk); color:var(--ink); cursor:pointer; text-decoration:none; }
+  button:hover { background:#fff; }
+  button.primary { background:var(--signal); border-color:var(--signal); color:#fff; }
+  button.primary:hover { background:#1f38aa; }
+  button[disabled] { opacity:.6; cursor:wait; }
+  button.small { padding:.35rem .7rem; font-size:.8125rem; border-color:var(--ink); background:var(--paper); }
+  button.danger { color:var(--bad); border-color:var(--bad); }
+  nav.jump { max-width:62rem; margin:1.25rem auto 0; padding:0 1.25rem; display:flex; flex-wrap:wrap; gap:.5rem 1.2rem; font-size:.9375rem; }
+  main { max-width:62rem; margin:auto; padding:1rem 1.25rem 5rem; }
+  section.card { background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:1.5rem; margin-top:1.25rem; }
+  section.card > h2 { margin:0 0 .25rem; font-size:1.25rem; }
+  .help { color:var(--ink-2); font-size:.9rem; margin:0 0 1.2rem; max-width:60ch; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:1rem 1.25rem; }
+  .field { display:grid; gap:.3rem; align-content:start; }
+  .field.wide { grid-column:1/-1; }
+  label { font-weight:600; font-size:.9rem; }
+  .hint { font-size:.8125rem; color:var(--ink-2); margin:0; }
+  input, select, textarea { font:inherit; width:100%; padding:.6rem .7rem; border:1px solid #8795a8; border-radius:4px; background:#fff; color:var(--ink); }
+  textarea { min-height:5.5rem; resize:vertical; }
+  .field[data-bad] input, .field[data-bad] textarea, .field[data-bad] select { border:2px solid var(--bad); }
+  .err { color:var(--bad); font-size:.875rem; font-weight:600; margin:0; }
+  .item { border:1px solid var(--line); border-radius:6px; padding:1rem; margin-top:1rem; background:#fafbfc; }
+  .item-head { display:flex; flex-wrap:wrap; justify-content:space-between; gap:.5rem; align-items:center; margin-bottom:.9rem; }
+  .item-head strong { font-size:1rem; }
+  .item-tools { display:flex; gap:.4rem; }
+  .empty { color:var(--ink-2); border:2px dashed var(--line); padding:1rem; border-radius:6px; margin-top:.5rem; }
+  #result { margin-top:1.25rem; }
+  .msg { padding:1rem 1.2rem; border-left:5px solid var(--ok); background:#fff; border-radius:4px; }
+  .msg.bad { border-left-color:var(--bad); }
+  .msg ul { margin:.5rem 0 0; padding-left:1.2rem; }
+  pre { background:var(--ink); color:#dfe6f1; padding:1rem; border-radius:4px; overflow:auto; font-size:.8125rem; white-space:pre-wrap; }
+  .env { display:flex; flex-wrap:wrap; gap:1rem 1.5rem; margin-top:.5rem; }
+  .env label { font-weight:500; display:flex; gap:.5rem; align-items:flex-start; }
+  .env input { width:auto; margin-top:.3rem; }
+  noscript { display:block; padding:1rem; background:#fff3cd; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <h1>Site admin</h1>
+  <div class="actions">
+    <span class="dirty" id="dirty" role="status" hidden>Unsaved changes</span>
+    <a id="preview" href="#" target="_blank" rel="noopener">Open preview</a>
+    <button class="primary" id="save" type="button">Save and rebuild</button>
+  </div>
+</div></header>
+<noscript>This page needs JavaScript.</noscript>
+<nav class="jump" aria-label="Sections">
+  <a href="#s-org">Organization</a><a href="#s-contact">Contact</a><a href="#s-social">Social</a><a href="#s-images">Images</a>
+  <a href="#s-companies">Companies</a><a href="#s-leadership">Leadership</a><a href="#s-insights">Insights</a><a href="#s-publish">Publish</a>
+</nav>
+<main id="app" aria-live="off"><p>Loading...</p></main>
+
+<script>
+(function () {
+  "use strict";
+  var state, previewPort = 4173, dirty = false;
+  var STATUS = ["Coming Soon", "In Development", "Active"];
+
+  var esc = function (s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
+  var slugify = function (s) { return s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); };
+
+  function getp(path) { return path.split(".").reduce(function (o, k) { return o == null ? o : o[k]; }, state); }
+  function setp(path, val) {
+    var keys = path.split("."), o = state;
+    for (var i = 0; i < keys.length - 1; i++) o = o[keys[i]];
+    o[keys[keys.length - 1]] = val;
+  }
+  function markDirty(v) { dirty = v; document.getElementById("dirty").hidden = !v; }
+
+  /* ---------- field builders ---------- */
+  function field(path, label, opts) {
+    opts = opts || {};
+    var id = "f-" + path.replace(/\./g, "-"), val = getp(path), type = opts.type || "text", ctl;
+    if (opts.options) {
+      ctl = '<select id="' + id + '" data-path="' + path + '">' + opts.options.map(function (o) { return "<option" + (o === val ? " selected" : "") + ">" + esc(o) + "</option>"; }).join("") + "</select>";
+    } else if (opts.rows) {
+      ctl = '<textarea id="' + id + '" data-path="' + path + '" rows="' + opts.rows + '">' + esc(val) + "</textarea>";
+    } else {
+      ctl = '<input id="' + id + '" data-path="' + path + '" type="' + type + '" value="' + esc(val) + '"' + (opts.placeholder ? ' placeholder="' + esc(opts.placeholder) + '"' : "") + (opts.min ? ' min="' + opts.min + '" max="' + opts.max + '"' : "") + ">";
+    }
+    return '<div class="field' + (opts.wide ? " wide" : "") + '" data-field="' + path + '"><label for="' + id + '">' + esc(label) + "</label>" +
+      ctl + (opts.hint ? '<p class="hint" id="' + id + '-h">' + esc(opts.hint) + "</p>" : "") + '<p class="err" id="' + id + '-e" hidden></p></div>';
+  }
+
+  function listSection(key, title, help, itemTitle, addLabel, fieldsFn) {
+    var items = state[key] || [];
+    var body = items.length ? items.map(function (it, n) {
+      return '<div class="item"><div class="item-head"><strong>' + esc(itemTitle(it, n)) + '</strong><div class="item-tools">' +
+        '<button type="button" class="small" data-act="up" data-key="' + key + '" data-n="' + n + '"' + (n === 0 ? " disabled" : "") + ' aria-label="Move up">Up</button>' +
+        '<button type="button" class="small" data-act="down" data-key="' + key + '" data-n="' + n + '"' + (n === items.length - 1 ? " disabled" : "") + ' aria-label="Move down">Down</button>' +
+        '<button type="button" class="small danger" data-act="del" data-key="' + key + '" data-n="' + n + '">Remove</button></div></div>' +
+        '<div class="grid">' + fieldsFn(key + "." + n, it) + "</div></div>";
+    }).join("") : '<p class="empty">Nothing here yet. The page shows its default message until you add one.</p>';
+    return '<section class="card" id="s-' + key + '"><h2>' + title + '</h2><p class="help">' + help + "</p>" + body +
+      '<p style="margin:1rem 0 0"><button type="button" class="small" data-act="add" data-key="' + key + '">' + addLabel + "</button></p></section>";
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    var focusId = document.activeElement && document.activeElement.id;
+    var h = "";
+    h += '<section class="card" id="s-org"><h2>Organization</h2><p class="help">Used in the header, footer, page titles, the Privacy Policy and the Terms.</p><div class="grid">' +
+      field("name", "Company name") +
+      field("siteUrl", "Site address", { type: "url", hint: "The live address, starting with https://. Used for search and sharing previews." }) +
+      field("description", "One-sentence description", { wide: true, hint: "Appears under the logo in the footer and in search results." }) +
+      field("legalEntity", "Registered company name", { hint: "Optional. Shown in the footer and legal pages, for example the full registered name." }) +
+      field("jurisdiction", "Country or region of registration", { hint: "Optional. Names the governing law in the Terms." }) +
+      field("retentionMonths", "Keep form submissions for (months)", { type: "number", min: 1, max: 120, hint: "Stated in the Privacy Policy." }) +
+      "</div></section>";
+
+    h += '<section class="card" id="s-contact"><h2>Contact</h2><p class="help">Anything you leave empty is hidden from the site. Fill in an email or a form service so the forms can reach you.</p><div class="grid">' +
+      field("contact.email", "Public email", { type: "email" }) +
+      field("contact.phone", "Phone") +
+      field("contact.address", "Address", { wide: true }) +
+      field("contact.formEndpoint", "Form service address", { type: "url", wide: true, hint: "From Formspree, Basin or similar, starting with https://. Messages are sent here as JSON." }) +
+      field("contact.responseTime", "Response time message", { wide: true, hint: "Shown on the Contact page, for example: We reply within three business days." }) +
+      "</div></section>";
+
+    h += '<section class="card" id="s-social"><h2>Social links</h2><p class="help">Full addresses starting with https://. Empty ones are hidden.</p><div class="grid">' +
+      field("social.linkedin", "LinkedIn", { type: "url" }) + field("social.x", "X", { type: "url" }) +
+      field("social.facebook", "Facebook", { type: "url" }) + field("social.instagram", "Instagram", { type: "url" }) + "</div></section>";
+
+    h += '<section class="card" id="s-images"><h2>Hero images</h2><p class="help">The large photo at the top of each page. Paste a full image address starting with https://. Leave one empty to show a plain navy band instead.</p><div class="grid">' +
+      field("images.home", "Home", { type: "url", wide: true }) + field("images.about", "About", { type: "url", wide: true }) +
+      field("images.companies", "Companies", { type: "url", wide: true }) + field("images.vision", "Vision", { type: "url", wide: true }) +
+      field("images.careers", "Careers", { type: "url", wide: true }) + field("images.contact", "Contact", { type: "url", wide: true }) + "</div></section>";
+
+    h += listSection("companies", "Companies", "Each company gets its own page and fills a slot in the group diagram on the home page.",
+      function (c, n) { return c.name || "New company"; }, "Add a company",
+      function (p) { return field(p + ".name", "Name") + field(p + ".slug", "Page address", { hint: "Lowercase letters, numbers and hyphens. The page will be /companies/this-address/." }) +
+        field(p + ".tagline", "Tagline", { hint: "Short line under the name, for example To Be Announced." }) + field(p + ".status", "Status", { options: STATUS }) +
+        field(p + ".industry", "Industry") + field(p + ".url", "Website", { type: "url" }) +
+        field(p + ".summary", "Summary (shown on cards)", { wide: true, rows: 3, hint: "One or two sentences about what the company does." }) +
+        field(p + ".about", "About (shown on the company page)", { wide: true, rows: 4 }); });
+
+    h += listSection("leadership", "Leadership", "The Leadership page shows \"profiles coming soon\" until you add at least one person.",
+      function (p) { return p.name || "New person"; }, "Add a person",
+      function (p) { return field(p + ".name", "Name") + field(p + ".role", "Role") + field(p + ".bio", "Short bio", { wide: true, rows: 3 }); });
+
+    h += listSection("insights", "Insights", "The Insights page shows a \"coming soon\" message until you add at least one post. Posts are shown newest first.",
+      function (p) { return p.title || "New post"; }, "Add a post",
+      function (p) { return field(p + ".title", "Title", { wide: true }) + field(p + ".date", "Date", { type: "date" }) +
+        field(p + ".url", "Link to the full article", { type: "url", hint: "Optional." }) + field(p + ".summary", "Summary", { wide: true, rows: 3 }); });
+
+    h += '<section class="card" id="s-publish"><h2>Publish</h2><p class="help">Saving writes <code>site.config.json</code> (a backup of the previous version is kept in <code>.backups/</code>) and rebuilds the site into <code>dist/</code>. Upload the contents of <code>dist/</code> to your host to make the changes live.</p>' +
+      '<div class="env"><label><input type="radio" name="env" value="production" checked> <span><strong>Production</strong><br><span class="hint">Search engines may index it.</span></span></label>' +
+      '<label><input type="radio" name="env" value="staging"> <span><strong>Staging</strong><br><span class="hint">Hidden from search engines. Use for test copies.</span></span></label></div>' +
+      '<p style="margin-top:1.2rem"><button class="primary" id="save2" type="button" style="border-color:var(--signal)">Save and rebuild</button></p><div id="result" role="status" aria-live="polite"></div></section>';
+
+    document.getElementById("app").innerHTML = h;
+    if (focusId) { var el = document.getElementById(focusId); if (el) el.focus(); }
+  }
+
+  /* ---------- events ---------- */
+  var app = document.getElementById("app");
+  app.addEventListener("input", function (e) {
+    var path = e.target.getAttribute && e.target.getAttribute("data-path");
+    if (!path) return;
+    var v = e.target.type === "number" ? e.target.value : e.target.value;
+    setp(path, v);
+    markDirty(true);
+    clearErr(e.target.closest(".field"));
+    // Auto-fill the page address from the company name until it is edited by hand.
+    var m = path.match(/^companies\.(\d+)\.name$/);
+    if (m) {
+      var c = state.companies[+m[1]];
+      if (!c._slugTouched) { c.slug = slugify(c.name); var s = document.getElementById("f-companies-" + m[1] + "-slug"); if (s) s.value = c.slug; }
+      var head = e.target.closest(".item").querySelector(".item-head strong"); if (head) head.textContent = c.name || "New company";
+    }
+    if (/^companies\.\d+\.slug$/.test(path)) state.companies[+path.split(".")[1]]._slugTouched = true;
+    var t = path.match(/^(leadership|insights)\.(\d+)\.(name|title)$/);
+    if (t) { var hd = e.target.closest(".item").querySelector(".item-head strong"); if (hd) hd.textContent = e.target.value || (t[1] === "insights" ? "New post" : "New person"); }
+  });
+
+  app.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-act]");
+    if (b) {
+      var key = b.getAttribute("data-key"), n = +b.getAttribute("data-n"), act = b.getAttribute("data-act"), arr = state[key];
+      if (act === "add") {
+        arr.push(key === "companies" ? { slug: "", name: "", tagline: "To Be Announced", status: "Coming Soon", industry: "To Be Announced", summary: "", about: "", url: "" }
+          : key === "leadership" ? { name: "", role: "", bio: "" }
+          : { date: new Date().toISOString().slice(0, 10), title: "", summary: "", url: "" });
+        render(); markDirty(true);
+        var first = document.querySelector("#s-" + key + " .item:last-of-type input"); if (first) first.focus();
+      } else if (act === "del") {
+        var label = arr[n].name || arr[n].title || "this entry";
+        if (confirm("Remove " + label + "? You can still cancel by reloading before you save.")) { arr.splice(n, 1); render(); markDirty(true); }
+      } else if (act === "up" && n > 0) { arr.splice(n - 1, 0, arr.splice(n, 1)[0]); render(); markDirty(true); }
+      else if (act === "down" && n < arr.length - 1) { arr.splice(n + 1, 0, arr.splice(n, 1)[0]); render(); markDirty(true); }
+      return;
+    }
+    if (e.target.id === "save2") save();
+  });
+  document.getElementById("save").addEventListener("click", save);
+  window.addEventListener("beforeunload", function (e) { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+
+  function clearErr(f) { if (!f) return; f.removeAttribute("data-bad"); var p = f.querySelector(".err"); p.hidden = true; p.textContent = ""; }
+  function showErr(path, msg) {
+    var f = document.querySelector('[data-field="' + path + '"]'); if (!f) return null;
+    f.setAttribute("data-bad", ""); var p = f.querySelector(".err"); p.textContent = msg; p.hidden = false; return f;
+  }
+
+  function save() {
+    var btns = [document.getElementById("save"), document.getElementById("save2")];
+    var result = document.getElementById("result");
+    document.querySelectorAll(".field[data-bad]").forEach(clearErr);
+    btns.forEach(function (b) { if (b) { b.disabled = true; b.textContent = "Saving..."; } });
+    var envEl = document.querySelector("input[name=env]:checked");
+    fetch("/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Admin": "1" },
+      body: JSON.stringify({ config: state, env: envEl ? envEl.value : "production" })
+    })
+      .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+      .then(function (r) {
+        if (r.status === 422) {
+          var firstEl = null, items = [];
+          r.body.errors.forEach(function (er) { var f = showErr(er.field, er.msg); if (f && !firstEl) firstEl = f; items.push("<li>" + esc(er.msg) + "</li>"); });
+          result.innerHTML = '<div class="msg bad"><strong>Nothing was saved.</strong> Fix ' + r.body.errors.length + (r.body.errors.length === 1 ? " field" : " fields") + " marked in red and try again.</div>";
+          if (firstEl) { firstEl.scrollIntoView({ block: "center" }); var inp = firstEl.querySelector("input,textarea,select"); if (inp) inp.focus(); }
+          return;
+        }
+        if (r.status !== 200) throw new Error(r.body.error || "Unexpected response");
+        keepSlugFlags(r.body.config);
+        markDirty(false);
+        var warn = r.body.log.split("\n").filter(function (l) { return /^(WARNING|NOTE)/.test(l); });
+        result.innerHTML = '<div class="msg' + (r.body.ok ? "" : " bad") + '"><strong>' + (r.body.ok ? "Saved and rebuilt." : "Saved, but the rebuild failed.") + "</strong> " +
+          (r.body.ok ? "Open the preview to check it, then upload <code>dist/</code> to your host." : "See the build log below.") +
+          (warn.length ? "<ul>" + warn.map(function (w) { return "<li>" + esc(w) + "</li>"; }).join("") + "</ul>" : "") +
+          '<details style="margin-top:.8rem"><summary>Build log</summary><pre>' + esc(r.body.log) + "</pre></details></div>";
+        result.scrollIntoView({ block: "nearest" });
+      })
+      .catch(function (err) {
+        result.innerHTML = '<div class="msg bad"><strong>Could not save.</strong> ' + esc(err.message) + ". Check that the admin server is still running.</div>";
+      })
+      .then(function () { btns.forEach(function (b) { if (b) { b.disabled = false; b.textContent = "Save and rebuild"; } }); });
+  }
+
+  function keepSlugFlags(cfg) { cfg.companies.forEach(function (c) { c._slugTouched = true; }); state = cfg; }
+
+  /* ---------- load ---------- */
+  fetch("/api/config").then(function (r) { return r.json(); }).then(function (j) {
+    state = j.config; previewPort = j.previewPort;
+    ["companies", "leadership", "insights"].forEach(function (k) { state[k] = state[k] || []; });
+    state.companies.forEach(function (c) { c._slugTouched = true; });
+    document.getElementById("preview").href = "http://localhost:" + previewPort + "/";
+    render();
+  }).catch(function () { app.innerHTML = '<p class="msg bad">Could not load the configuration. Start the admin with <code>npm run admin</code>.</p>'; });
+})();
+</script>
+</body>
+</html>

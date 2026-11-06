@@ -1,0 +1,53 @@
+{
+  "name": "Jerome Co-operations",
+  "siteUrl": "https://jeromecooperations.com",
+  "description": "A parent company focused on building, managing, and supporting businesses with long-term potential across multiple industries.",
+  "legalEntity": "",
+  "jurisdiction": "",
+  "contact": {
+    "email": "",
+    "phone": "",
+    "address": "",
+    "formEndpoint": "",
+    "responseTime": "We aim to respond within 2-3 business days."
+  },
+  "social": {
+    "linkedin": "",
+    "x": "",
+    "facebook": "",
+    "instagram": ""
+  },
+  "retentionMonths": 24,
+  "images": {
+    "home": "https://images.pexels.com/photos/358549/pexels-photo-358549.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    "about": "https://images.pexels.com/photos/7433853/pexels-photo-7433853.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    "companies": "https://images.pexels.com/photos/358549/pexels-photo-358549.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    "vision": "https://images.pexels.com/photos/33210172/pexels-photo-33210172.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    "careers": "https://images.pexels.com/photos/6804612/pexels-photo-6804612.jpeg?auto=compress&cs=tinysrgb&w=1920",
+    "contact": "https://images.pexels.com/photos/33175650/pexels-photo-33175650.jpeg?auto=compress&cs=tinysrgb&w=1920"
+  },
+  "companies": [
+    {
+      "slug": "company-one",
+      "name": "Company One",
+      "tagline": "To Be Announced",
+      "status": "Coming Soon",
+      "industry": "To Be Announced",
+      "summary": "A new venture currently in its planning phase. Details will be shared as this initiative develops.",
+      "about": "Company One is a forthcoming subsidiary of Jerome Co-operations. While we are not yet ready to share full details, this venture represents our commitment to exploring new opportunities and building businesses with long-term potential.",
+      "url": ""
+    },
+    {
+      "slug": "company-two",
+      "name": "Company Two",
+      "tagline": "To Be Announced",
+      "status": "In Development",
+      "industry": "To Be Announced",
+      "summary": "A business concept under active development. More information will be available as the project takes shape.",
+      "about": "Company Two is a subsidiary of Jerome Co-operations currently in the development stage. This initiative reflects our approach to thoughtful, deliberate business building across emerging sectors.",
+      "url": ""
+    }
+  ],
+  "leadership": [],
+  "insights": []
+}
