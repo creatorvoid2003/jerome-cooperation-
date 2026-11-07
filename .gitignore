@@ -2,3 +2,4 @@ dist/
 .backups/
 node_modules/
 .DS_Store
+dist-offline/
