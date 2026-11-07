@@ -1,7 +1,6 @@
 // The page shell: <head>, SEO tags, header, footer.
 import { esc } from "./components.mjs";
 import { STAGING } from "./config.mjs";
-import { logoMark, logoLockup } from "./logo.mjs";
 
 const NAV = [
   ["/", "Home"],
@@ -14,10 +13,14 @@ const NAV = [
   ["/insights/", "Insights"],
 ];
 
-// The artwork contains the company name as outlines, so it is used only while the name is unchanged.
-const wordmark = (cfg, label) => cfg.name === "Jerome Co-operations"
-  ? `<a class="wordmark wordmark--art" href="/"${label ? ` aria-label="${esc(cfg.name)}, home"` : ""}>${logoLockup}${label ? "" : `<span class="sr-only">${esc(cfg.name)}</span>`}</a>`
-  : `<a class="wordmark" href="/"${label ? ` aria-label="${esc(cfg.name)}, home"` : ""}>${logoMark}<span>${esc(cfg.name)}</span></a>`;
+// The logo artwork contains the company name, so it is used only while the name is unchanged.
+const wordmark = (cfg, label) => {
+  const aria = label ? ` aria-label="${esc(cfg.name)}, home"` : "";
+  if (cfg.name === "Jerome Co-operations") {
+    return `<a class="wordmark wordmark--art" href="/"${aria}><img class="logo-mark" src="/assets/logo-mark.png" alt="" width="200" height="163"><img class="logo-word" src="/assets/logo-wordmark.png" alt="${label ? "" : esc(cfg.name)}" width="300" height="95"></a>`;
+  }
+  return `<a class="wordmark" href="/"${aria}><img class="logo-mark" src="/assets/logo-mark.png" alt="" width="200" height="163"><span>${esc(cfg.name)}</span></a>`;
+};
 
 function orgJsonLd(cfg) {
   const C = cfg.contact;
@@ -63,7 +66,8 @@ export function layout(cfg, page) {
 <meta name="theme-color" content="#0a0f1c">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/assets/logo-512.png">
+<link rel="icon" href="/assets/favicon.png" type="image/png" sizes="64x64">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="${esc(cfg.name)}">
