@@ -76,6 +76,8 @@ write("robots.txt", STAGING ? "User-agent: *\nDisallow: /\n" : `User-agent: *\nA
 
 // Static files (the CSS and JS are already inside every page; only images remain)
 for (const f of fs.readdirSync(path.join(STATIC, "img"))) fs.copyFileSync(path.join(STATIC, "img", f), path.join(DIST, "assets", f));
+// Files that must sit at the site root (for example search-engine verification files).
+if (fs.existsSync(path.join(STATIC, "root"))) for (const f of fs.readdirSync(path.join(STATIC, "root"))) fs.copyFileSync(path.join(STATIC, "root", f), path.join(DIST, f));
 
 console.log(`Built ${pages.length} pages + 404 into ${path.basename(DIST)}/ (${STAGING ? "STAGING: noindex" : OFFLINE ? "OFFLINE: open index.html from the folder" : "production"}).`);
 const C = cfg.contact;
