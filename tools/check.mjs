@@ -8,7 +8,7 @@ import { DIST } from "../src/lib/config.mjs";
 
 const files = [];
 (function walk(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); fs.statSync(p).isDirectory() ? walk(p) : files.push(p); } })(DIST);
-const pages = files.filter((f) => f.endsWith(".html"));
+const pages = files.filter((f) => f.endsWith(".html") && !/^google[0-9a-f]+\.html$/.test(path.basename(f)));
 let problems = 0;
 const fail = (m) => { problems++; console.log("  FAIL " + m); };
 
