@@ -1,6 +1,7 @@
 // The page shell: <head>, SEO tags, header, footer.
 import { esc } from "./components.mjs";
 import { STAGING } from "./config.mjs";
+import { logoMark, logoLockup } from "./logo.mjs";
 
 const NAV = [
   ["/", "Home"],
@@ -13,11 +14,14 @@ const NAV = [
   ["/insights/", "Insights"],
 ];
 
-const logo = `<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect x="2" y="20" width="28" height="8" fill="currentColor"/><rect x="2" y="9" width="13" height="8" fill="currentColor"/><rect x="18" y="9" width="12" height="8" fill="none" stroke="#7d9bff" stroke-width="2" stroke-dasharray="3 2.5"/></svg>`;
+// The artwork contains the company name as outlines, so it is used only while the name is unchanged.
+const wordmark = (cfg, label) => cfg.name === "Jerome Co-operations"
+  ? `<a class="wordmark wordmark--art" href="/"${label ? ` aria-label="${esc(cfg.name)}, home"` : ""}>${logoLockup}${label ? "" : `<span class="sr-only">${esc(cfg.name)}</span>`}</a>`
+  : `<a class="wordmark" href="/"${label ? ` aria-label="${esc(cfg.name)}, home"` : ""}>${logoMark}<span>${esc(cfg.name)}</span></a>`;
 
 function orgJsonLd(cfg) {
   const C = cfg.contact;
-  const o = { "@context": "https://schema.org", "@type": "Organization", name: cfg.name, url: cfg.siteUrl + "/", description: cfg.description, logo: cfg.siteUrl + "/assets/favicon.svg" };
+  const o = { "@context": "https://schema.org", "@type": "Organization", name: cfg.name, url: cfg.siteUrl + "/", description: cfg.description, logo: cfg.siteUrl + "/assets/logo-512.png" };
   if (C.email) o.email = C.email;
   if (C.phone) o.telephone = C.phone;
   if (C.address) o.address = { "@type": "PostalAddress", streetAddress: C.address };
@@ -59,6 +63,7 @@ export function layout(cfg, page) {
 <meta name="theme-color" content="#0a0f1c">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logo-512.png">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_US">
 <meta property="og:site_name" content="${esc(cfg.name)}">
@@ -80,7 +85,7 @@ export function layout(cfg, page) {
 <body>
 <a class="skip" href="#main-content">Skip to main content</a>
 <header class="site-header"><div class="wrap bar">
-<a class="wordmark" href="/" aria-label="${esc(cfg.name)}, home">${logo}<span>${esc(cfg.name)}</span></a>
+${wordmark(cfg, true)}
 <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
 <nav class="nav" id="site-nav" aria-label="Main"><ul>${navLinks}</ul><a class="btn btn--solid" href="/contact/"${current("/contact/") ? ' aria-current="page"' : ""}>Contact Us</a></nav>
 </div></header>
@@ -90,7 +95,7 @@ ${body}
 <footer class="site-footer"><div class="wrap">
 <div class="foot-grid">
 <div class="foot-about">
-<a class="wordmark" href="/">${logo}<span>${esc(cfg.name)}</span></a>
+${wordmark(cfg, false)}
 <p>${esc(cfg.description)}</p>
 ${contactBits.length ? `<address>${contactBits.join("")}</address>` : ""}
 ${social ? `<ul class="social" aria-label="Social media">${social}</ul>` : ""}

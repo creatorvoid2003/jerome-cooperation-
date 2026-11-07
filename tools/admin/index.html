@@ -6,68 +6,129 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Site admin</title>
 <style>
-  :root { --chalk:#f1f3f6; --paper:#fff; --ink:#13253a; --ink-2:#3a4c63; --line:#c9d1dc; --signal:#2b49d1; --bad:#b3261e; --ok:#1d6b3a; }
-  * { box-sizing: border-box; }
-  body { margin:0; font:16px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif; color:var(--ink); background:var(--chalk); }
-  :focus-visible { outline:3px solid var(--signal); outline-offset:2px; }
-  header.bar { position:sticky; top:0; z-index:10; background:var(--ink); color:var(--chalk); }
-  .bar-in { max-width:62rem; margin:auto; padding:.8rem 1.25rem; display:flex; flex-wrap:wrap; gap:.75rem 1.25rem; align-items:center; justify-content:space-between; }
-  .bar h1 { font-size:1.1rem; margin:0; }
-  .bar a { color:var(--chalk); }
-  .actions { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; }
-  .dirty { font-size:.875rem; color:#ffd58a; }
-  button, .btn { font:inherit; font-weight:600; font-size:.9375rem; padding:.6rem 1.1rem; border-radius:4px; border:1px solid var(--chalk); background:var(--chalk); color:var(--ink); cursor:pointer; text-decoration:none; }
-  button:hover { background:#fff; }
-  button.primary { background:var(--signal); border-color:var(--signal); color:#fff; }
-  button.primary:hover { background:#1f38aa; }
-  button[disabled] { opacity:.6; cursor:wait; }
-  button.small { padding:.35rem .7rem; font-size:.8125rem; border-color:var(--ink); background:var(--paper); }
-  button.danger { color:var(--bad); border-color:var(--bad); }
-  nav.jump { max-width:62rem; margin:1.25rem auto 0; padding:0 1.25rem; display:flex; flex-wrap:wrap; gap:.5rem 1.2rem; font-size:.9375rem; }
-  main { max-width:62rem; margin:auto; padding:1rem 1.25rem 5rem; }
-  section.card { background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:1.5rem; margin-top:1.25rem; }
-  section.card > h2 { margin:0 0 .25rem; font-size:1.25rem; }
-  .help { color:var(--ink-2); font-size:.9rem; margin:0 0 1.2rem; max-width:60ch; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(16rem,1fr)); gap:1rem 1.25rem; }
-  .field { display:grid; gap:.3rem; align-content:start; }
+  :root {
+    --bg:#f4f6fa; --panel:#fff; --panel-2:#f8f9fc; --ink:#0d1526; --ink-2:#55627a; --line:#e3e8f0; --line-2:#cfd7e4;
+    --brand:#0a0f1c; --accent:#2a4bd0; --accent-ink:#fff; --accent-soft:#e8edfd; --bad:#c42b21; --bad-soft:#fdeceb; --ok:#14733a; --ok-soft:#e6f5ec; --warn:#9a5b00; --warn-soft:#fff4de;
+    --shadow:0 1px 2px rgba(13,21,38,.05),0 8px 24px -12px rgba(13,21,38,.12); --r:14px; --logo-accent:#8fa9ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#090d17; --panel:#101728; --panel-2:#0c1220; --ink:#e9eef8; --ink-2:#97a4bd; --line:#1c2640; --line-2:#2a3757; --accent:#8fa9ff; --accent-ink:#0a0f1c; --accent-soft:#17213d;
+      --bad:#ff8a80; --bad-soft:#3a1714; --ok:#6fd49a; --ok-soft:#12301f; --warn:#ffcb70; --warn-soft:#33260c; --shadow:none; }
+  }
+  * { box-sizing:border-box; }
+  html { scroll-padding-top:5.5rem; }
+  body { margin:0; font:15px/1.55 Inter,"Segoe UI",system-ui,-apple-system,sans-serif; color:var(--ink); background:var(--bg); -webkit-font-smoothing:antialiased; }
+  :focus-visible { outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent); outline-offset:2px; }
+  code { font:.85em ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--accent-soft); padding:.1em .4em; border-radius:6px; }
+  .shell { display:grid; grid-template-columns:15.5rem minmax(0,1fr); min-height:100vh; }
+  aside.side { position:sticky; top:0; align-self:start; height:100vh; padding:1.4rem 1rem; background:var(--brand); color:#e9eef8; display:flex; flex-direction:column; gap:1.5rem; }
+  .brand { display:flex; align-items:center; gap:.7rem; padding:0 .5rem; text-decoration:none; color:inherit; }
+  .brand svg { width:2.1rem; height:2.1rem; color:#e9eef8; flex:none; }
+  .brand b { display:block; font-size:.95rem; line-height:1.2; letter-spacing:-.01em; }
+  .brand small { color:#8a97b3; font-size:.75rem; }
+  .side nav { display:grid; gap:.15rem; }
+  .side nav a { display:flex; align-items:center; gap:.7rem; padding:.55rem .75rem; border-radius:10px; color:#aab6cf; text-decoration:none; font-weight:500; font-size:.9rem; }
+  .side nav a i { width:.5rem; height:.5rem; border-radius:2px; background:#33405f; flex:none; }
+  .side nav a:hover { background:#141c30; color:#fff; }
+  .side nav a.on { background:#1a2442; color:#fff; }
+  .side nav a.on i { background:#8fa9ff; }
+  .side nav .grp { margin:.9rem .75rem .3rem; font-size:.7rem; letter-spacing:.09em; text-transform:uppercase; color:#6c7a97; }
+  .side .foot { margin-top:auto; font-size:.78rem; color:#7a88a6; padding:0 .5rem; }
+  .side .foot a { color:#aab6cf; }
+  .col { min-width:0; }
+  header.top { position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.85rem 2rem; background:color-mix(in srgb,var(--bg) 86%,transparent); backdrop-filter:saturate(1.4) blur(12px); border-bottom:1px solid var(--line); }
+  header.top h1 { margin:0; font-size:1.05rem; letter-spacing:-.01em; }
+  header.top p { margin:0; color:var(--ink-2); font-size:.8rem; }
+  .actions { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+  .pill { display:inline-flex; align-items:center; gap:.4rem; font-size:.8rem; font-weight:600; padding:.3rem .7rem; border-radius:999px; background:var(--warn-soft); color:var(--warn); }
+  .pill::before { content:""; width:.45rem; height:.45rem; border-radius:50%; background:currentColor; }
+  .pill[hidden] { display:none; }
+  button, .btn { font:inherit; font-weight:600; font-size:.875rem; padding:.55rem 1rem; border-radius:10px; border:1px solid var(--line-2); background:var(--panel); color:var(--ink); cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; transition:background .15s,border-color .15s,transform .05s; }
+  button:hover, .btn:hover { border-color:var(--ink-2); }
+  button:active { transform:translateY(1px); }
+  button.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); box-shadow:0 6px 16px -8px var(--accent); }
+  button.primary:hover { filter:brightness(1.08); }
+  button[disabled] { opacity:.5; cursor:not-allowed; }
+  button.small { padding:.3rem .65rem; font-size:.78rem; border-radius:8px; }
+  button.danger { color:var(--bad); }
+  button.danger:hover { border-color:var(--bad); background:var(--bad-soft); }
+  main { padding:1.5rem 2rem 6rem; max-width:62rem; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr)); gap:.9rem; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:1rem 1.1rem; box-shadow:var(--shadow); }
+  .stat b { display:block; font-size:1.8rem; line-height:1.1; letter-spacing:-.03em; }
+  .stat span { color:var(--ink-2); font-size:.8rem; }
+  .checks { margin-top:.9rem; display:grid; gap:.5rem; }
+  .check { display:flex; gap:.7rem; align-items:flex-start; padding:.7rem .9rem; border-radius:12px; background:var(--panel); border:1px solid var(--line); font-size:.875rem; }
+  .check .dot { flex:none; width:1.3rem; height:1.3rem; border-radius:50%; display:grid; place-items:center; font-size:.75rem; font-weight:800; margin-top:.05rem; }
+  .check.ok .dot { background:var(--ok-soft); color:var(--ok); }
+  .check.todo .dot { background:var(--warn-soft); color:var(--warn); }
+  .check a { color:var(--accent); font-weight:600; }
+  section.card { background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:1.6rem; margin-top:1.1rem; box-shadow:var(--shadow); }
+  section.card > h2 { margin:0 0 .2rem; font-size:1.1rem; letter-spacing:-.015em; }
+  .help { color:var(--ink-2); font-size:.86rem; margin:0 0 1.3rem; max-width:62ch; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(15rem,1fr)); gap:1.1rem 1.2rem; }
+  .field { display:grid; gap:.35rem; align-content:start; }
   .field.wide { grid-column:1/-1; }
-  label { font-weight:600; font-size:.9rem; }
-  .hint { font-size:.8125rem; color:var(--ink-2); margin:0; }
-  input, select, textarea { font:inherit; width:100%; padding:.6rem .7rem; border:1px solid #8795a8; border-radius:4px; background:#fff; color:var(--ink); }
+  label { font-weight:600; font-size:.82rem; }
+  .hint { font-size:.78rem; color:var(--ink-2); margin:0; }
+  input, select, textarea { font:inherit; width:100%; padding:.6rem .75rem; border:1px solid var(--line-2); border-radius:10px; background:var(--panel-2); color:var(--ink); transition:border-color .15s,box-shadow .15s,background .15s; }
+  input:hover, select:hover, textarea:hover { border-color:var(--ink-2); }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--accent); background:var(--panel); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent); }
   textarea { min-height:5.5rem; resize:vertical; }
-  .field[data-bad] input, .field[data-bad] textarea, .field[data-bad] select { border:2px solid var(--bad); }
-  .err { color:var(--bad); font-size:.875rem; font-weight:600; margin:0; }
-  .item { border:1px solid var(--line); border-radius:6px; padding:1rem; margin-top:1rem; background:#fafbfc; }
-  .item-head { display:flex; flex-wrap:wrap; justify-content:space-between; gap:.5rem; align-items:center; margin-bottom:.9rem; }
-  .item-head strong { font-size:1rem; }
+  .field[data-bad] input, .field[data-bad] textarea, .field[data-bad] select { border-color:var(--bad); box-shadow:0 0 0 4px color-mix(in srgb,var(--bad) 16%,transparent); }
+  .err { color:var(--bad); font-size:.8rem; font-weight:600; margin:0; }
+  .item { border:1px solid var(--line); border-radius:12px; padding:1.1rem; margin-top:1rem; background:var(--panel-2); }
+  .item-head { display:flex; flex-wrap:wrap; justify-content:space-between; gap:.5rem; align-items:center; margin-bottom:1rem; }
+  .item-head strong { font-size:.95rem; }
   .item-tools { display:flex; gap:.4rem; }
-  .empty { color:var(--ink-2); border:2px dashed var(--line); padding:1rem; border-radius:6px; margin-top:.5rem; }
-  #result { margin-top:1.25rem; }
-  .msg { padding:1rem 1.2rem; border-left:5px solid var(--ok); background:#fff; border-radius:4px; }
-  .msg.bad { border-left-color:var(--bad); }
+  .empty { color:var(--ink-2); border:1.5px dashed var(--line-2); padding:1.1rem; border-radius:12px; margin-top:.5rem; font-size:.875rem; }
+  #result { margin-top:1.2rem; }
+  .msg { padding:1rem 1.2rem; border-radius:12px; background:var(--ok-soft); border:1px solid color-mix(in srgb,var(--ok) 35%,transparent); }
+  .msg.bad { background:var(--bad-soft); border-color:color-mix(in srgb,var(--bad) 35%,transparent); }
   .msg ul { margin:.5rem 0 0; padding-left:1.2rem; }
-  pre { background:var(--ink); color:#dfe6f1; padding:1rem; border-radius:4px; overflow:auto; font-size:.8125rem; white-space:pre-wrap; }
-  .env { display:flex; flex-wrap:wrap; gap:1rem 1.5rem; margin-top:.5rem; }
-  .env label { font-weight:500; display:flex; gap:.5rem; align-items:flex-start; }
-  .env input { width:auto; margin-top:.3rem; }
-  noscript { display:block; padding:1rem; background:#fff3cd; }
+  pre { background:var(--brand); color:#dfe6f1; padding:1rem; border-radius:10px; overflow:auto; font-size:.78rem; white-space:pre-wrap; }
+  .env { display:grid; grid-template-columns:repeat(auto-fit,minmax(15rem,1fr)); gap:.8rem; margin-top:.4rem; }
+  .env label { font-weight:500; display:flex; gap:.7rem; align-items:flex-start; padding:.9rem 1rem; border:1px solid var(--line-2); border-radius:12px; cursor:pointer; background:var(--panel-2); }
+  .env label:has(input:checked) { border-color:var(--accent); background:var(--accent-soft); }
+  .env input { width:auto; margin-top:.25rem; accent-color:var(--accent); }
+  noscript { display:block; padding:1rem; background:var(--warn-soft); }
+  @media (max-width:900px) {
+    .shell { grid-template-columns:1fr; }
+    aside.side { position:static; height:auto; flex-direction:row; align-items:center; padding:.8rem 1rem; gap:1rem; overflow-x:auto; }
+    .side nav { display:flex; } .side nav a { white-space:nowrap; } .side nav .grp, .side .foot, .brand small { display:none; }
+    header.top { padding:.8rem 1rem; } main { padding:1.2rem 1rem 6rem; }
+  }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
 </style>
 </head>
 <body>
-<header class="bar"><div class="bar-in">
-  <h1>Site admin</h1>
+<div class="shell">
+<aside class="side">
+  <a class="brand" href="#s-overview"><svg class="logo-mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M26 2H46V22H26ZM26 26H46V46H26ZM2 26H22V46H2Z" fill="currentColor"/><rect x="3.25" y="3.25" width="17.5" height="17.5" fill="none" stroke="var(--logo-accent)" stroke-width="2.5" stroke-dasharray="4.4 2.8"/></svg><span><b>Jerome Co&#8209;operations</b><small>Site admin</small></span></a>
+  <nav id="jump" aria-label="Sections">
+    <a href="#s-overview"><i></i>Overview</a>
+    <span class="grp">Site</span>
+    <a href="#s-org"><i></i>Organization</a><a href="#s-contact"><i></i>Contact</a><a href="#s-social"><i></i>Social</a><a href="#s-images"><i></i>Images</a>
+    <span class="grp">Content</span>
+    <a href="#s-companies"><i></i>Companies</a><a href="#s-leadership"><i></i>Leadership</a><a href="#s-insights"><i></i>Insights</a>
+    <span class="grp">Release</span>
+    <a href="#s-publish"><i></i>Publish</a>
+  </nav>
+  <p class="foot">Local only. Changes are saved to <code>site.config.json</code>.</p>
+</aside>
+<div class="col">
+<header class="top">
+  <div><h1>Dashboard</h1><p>Edit your site, then save to rebuild it.</p></div>
   <div class="actions">
-    <span class="dirty" id="dirty" role="status" hidden>Unsaved changes</span>
-    <a id="preview" href="#" target="_blank" rel="noopener">Open preview</a>
+    <span class="pill" id="dirty" role="status" hidden>Unsaved changes</span>
+    <a class="btn" id="preview" href="#" target="_blank" rel="noopener">Open preview</a>
     <button class="primary" id="save" type="button">Save and rebuild</button>
   </div>
-</div></header>
+</header>
 <noscript>This page needs JavaScript.</noscript>
-<nav class="jump" aria-label="Sections">
-  <a href="#s-org">Organization</a><a href="#s-contact">Contact</a><a href="#s-social">Social</a><a href="#s-images">Images</a>
-  <a href="#s-companies">Companies</a><a href="#s-leadership">Leadership</a><a href="#s-insights">Insights</a><a href="#s-publish">Publish</a>
-</nav>
 <main id="app" aria-live="off"><p>Loading...</p></main>
+</div>
+</div>
 
 <script>
 (function () {
@@ -117,7 +178,7 @@
   /* ---------- render ---------- */
   function render() {
     var focusId = document.activeElement && document.activeElement.id;
-    var h = "";
+    var h = '<div id="s-overview"><div id="overview"></div></div>';
     h += '<section class="card" id="s-org"><h2>Organization</h2><p class="help">Used in the header, footer, page titles, the Privacy Policy and the Terms.</p><div class="grid">' +
       field("name", "Company name") +
       field("siteUrl", "Site address", { type: "url", hint: "The live address, starting with https://. Used for search and sharing previews." }) +
@@ -164,10 +225,30 @@
     h += '<section class="card" id="s-publish"><h2>Publish</h2><p class="help">Saving writes <code>site.config.json</code> (a backup of the previous version is kept in <code>.backups/</code>) and rebuilds the site into <code>dist/</code>. Upload the contents of <code>dist/</code> to your host to make the changes live.</p>' +
       '<div class="env"><label><input type="radio" name="env" value="production" checked> <span><strong>Production</strong><br><span class="hint">Search engines may index it.</span></span></label>' +
       '<label><input type="radio" name="env" value="staging"> <span><strong>Staging</strong><br><span class="hint">Hidden from search engines. Use for test copies.</span></span></label></div>' +
-      '<p style="margin-top:1.2rem"><button class="primary" id="save2" type="button" style="border-color:var(--signal)">Save and rebuild</button></p><div id="result" role="status" aria-live="polite"></div></section>';
+      '<p style="margin-top:1.2rem"><button class="primary" id="save2" type="button">Save and rebuild</button></p><div id="result" role="status" aria-live="polite"></div></section>';
 
     document.getElementById("app").innerHTML = h;
+    overview();
     if (focusId) { var el = document.getElementById(focusId); if (el) el.focus(); }
+  }
+
+  /* ---------- overview ---------- */
+  function overview() {
+    var el = document.getElementById("overview"); if (!el || !state) return;
+    var c = state.contact || {}, n = function (k) { return (state[k] || []).length; };
+    var checks = [
+      [!!(c.email || c.formEndpoint), "Forms can reach you", "Add a public email or a form service address so the contact and careers forms deliver messages.", "#s-contact"],
+      [/^https:\/\//.test(state.siteUrl || ""), "Site address is set", "Enter the live address, starting with https://.", "#s-org"],
+      [n("companies") > 0, "At least one company listed", "Add a company so the Companies page has content.", "#s-companies"],
+      [n("leadership") > 0, "Leadership profiles added", "The Leadership page shows a placeholder until someone is added.", "#s-leadership"],
+      [!!(state.legalEntity), "Registered company name set", "Optional. Shown in the footer and legal pages.", "#s-org"]
+    ];
+    el.innerHTML = '<div class="stats">' +
+      [["Companies", n("companies")], ["Leaders", n("leadership")], ["Insights", n("insights")], ["Setup done", checks.filter(function (x) { return x[0]; }).length + "/" + checks.length]].map(function (x) {
+        return '<div class="stat"><b>' + x[1] + "</b><span>" + x[0] + "</span></div>"; }).join("") + "</div>" +
+      '<div class="checks">' + checks.map(function (x) {
+        return '<div class="check ' + (x[0] ? "ok" : "todo") + '"><span class="dot" aria-hidden="true">' + (x[0] ? "&#10003;" : "!") + "</span><div><strong>" + esc(x[1]) + "</strong>" +
+          (x[0] ? "" : '<br><span class="hint">' + esc(x[2]) + ' <a href="' + x[3] + '">Fix this</a></span>') + "</div></div>"; }).join("") + "</div>";
   }
 
   /* ---------- events ---------- */
@@ -178,6 +259,7 @@
     var v = e.target.type === "number" ? e.target.value : e.target.value;
     setp(path, v);
     markDirty(true);
+    overview();
     clearErr(e.target.closest(".field"));
     // Auto-fill the page address from the company name until it is edited by hand.
     var m = path.match(/^companies\.(\d+)\.name$/);
@@ -203,7 +285,7 @@
         var first = document.querySelector("#s-" + key + " .item:last-of-type input"); if (first) first.focus();
       } else if (act === "del") {
         var label = arr[n].name || arr[n].title || "this entry";
-        if (confirm("Remove " + label + "? You can still cancel by reloading before you save.")) { arr.splice(n, 1); render(); markDirty(true); }
+        if (confirm("Remove " + label + "? You can still cancel by reloading before you save.")) { arr.splice(n, 1); render(); markDirty(true); overview(); }
       } else if (act === "up" && n > 0) { arr.splice(n - 1, 0, arr.splice(n, 1)[0]); render(); markDirty(true); }
       else if (act === "down" && n < arr.length - 1) { arr.splice(n + 1, 0, arr.splice(n, 1)[0]); render(); markDirty(true); }
       return;
@@ -257,13 +339,22 @@
 
   function keepSlugFlags(cfg) { cfg.companies.forEach(function (c) { c._slugTouched = true; }); state = cfg; }
 
+  /* ---------- active section in the sidebar ---------- */
+  var links = [].slice.call(document.querySelectorAll("#jump a"));
+  function activeNav() {
+    var cur = links[0], y = window.scrollY + 140;
+    links.forEach(function (a) { var t = document.querySelector(a.getAttribute("href")); if (t && t.offsetTop <= y) cur = a; });
+    links.forEach(function (a) { a.classList.toggle("on", a === cur); });
+  }
+  window.addEventListener("scroll", activeNav, { passive: true });
+
   /* ---------- load ---------- */
   fetch("/api/config").then(function (r) { return r.json(); }).then(function (j) {
     state = j.config; previewPort = j.previewPort;
     ["companies", "leadership", "insights"].forEach(function (k) { state[k] = state[k] || []; });
     state.companies.forEach(function (c) { c._slugTouched = true; });
     document.getElementById("preview").href = "http://localhost:" + previewPort + "/";
-    render();
+    render(); activeNav();
   }).catch(function () { app.innerHTML = '<p class="msg bad">Could not load the configuration. Start the admin with <code>npm run admin</code>.</p>'; });
 })();
 </script>
